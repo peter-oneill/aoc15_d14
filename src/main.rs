@@ -20,17 +20,16 @@ fn main() {
         process::exit(2);
     });
 
-    let race_time = match env::args().next() {
-        Some(s) => match s.parse::<u32>() {
-            Ok(v) => v,
-            Err(_) => {
-                eprintln!("Couldn't parse rate time arg to u32: \"{}\"", s);
-                process::exit(4);
-            }
-        },
-        None => {
-            eprintln!("No race time provided.");
-            process::exit(3);
+    let args: Vec<String> = env::args().collect();
+    if args.len() < 2 {
+        eprintln!("No race time provided.");
+        process::exit(3);
+    }
+    let race_time = match args[1].parse::<u32>() {
+        Ok(v) => v,
+        Err(_) => {
+            eprintln!("Couldn't parse rate time arg to u32: \"{}\"", args[1]);
+            process::exit(4);
         }
     };
 
