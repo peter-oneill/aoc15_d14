@@ -126,6 +126,11 @@ fn new_winner<'a>(reindeer: &'a Reindeer, dist: u32) -> Option<Winner<'a>> {
 }
 
 fn reindeer_dist(reindeer: &Reindeer, time: u32) -> u32 {
-    reindeer.cycle_dist * time / reindeer.cycle_time
-        + reindeer.speed * cmp::min(time, reindeer.flight_time)
+    let full_cycles = time / reindeer.cycle_time;
+    let full_dist = reindeer.cycle_dist * full_cycles;
+    let remaining_time = time % reindeer.cycle_time;
+    let remaining_used_time = cmp::min(remaining_time, reindeer.flight_time);
+    let partial_dist = remaining_used_time * reindeer.speed;
+
+    full_dist + partial_dist
 }
