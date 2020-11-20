@@ -84,3 +84,7 @@ fn extract_u32_from_regex(
         .parse::<u32>()
         .map_err(|e| format!("Couldn't parse speed to u32: \"{}\"", string.to_owned()))
 }
+
+fn find_winner<'a>(reindeers: &'a Vec<Reindeer>, race_time: u32) -> (&'a str, u32) {
+    (&reindeers[0].name, 5)
+}
