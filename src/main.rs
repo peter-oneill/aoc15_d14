@@ -1,4 +1,5 @@
 use regex::Regex;
+use std::cmp;
 use std::{env, fs, process};
 
 #[derive(Debug)]
@@ -7,6 +8,13 @@ struct Reindeer {
     speed: u32,
     flight_time: u32,
     rest_time: u32,
+    cycle_dist: u32,
+    cycle_time: u32,
+}
+
+struct Winner<'a> {
+    name: &'a str,
+    dist: u32,
 }
 
 fn main() {
@@ -33,9 +41,14 @@ fn main() {
         }
     };
 
-    let (winner, distance): (&str, u32) = find_winner(&reindeers, race_time);
-
-    println!("The winner is {} with distance {}!", winner, distance);
+    match find_winner(&reindeers, race_time) {
+        Some(w) => {
+            println!("The winner is {} with distance {}!", w.name, w.dist);
+        }
+        None => {
+            println!("There was no winner!");
+        }
+    }
 }
 
 fn parse_input(input: String) -> Result<Vec<Reindeer>, String> {
@@ -68,6 +81,8 @@ fn parse_input(input: String) -> Result<Vec<Reindeer>, String> {
             speed,
             flight_time,
             rest_time,
+            cycle_dist: speed * flight_time,
+            cycle_time: flight_time + rest_time,
         });
     }
 
@@ -81,9 +96,36 @@ fn extract_u32_from_regex(
     let string = regex_match.name(capture_name).unwrap().as_str();
     string
         .parse::<u32>()
-        .map_err(|e| format!("Couldn't parse speed to u32: \"{}\"", string.to_owned()))
+        .map_err(|_| format!("Couldn't parse speed to u32: \"{}\"", string.to_owned()))
 }
 
-fn find_winner<'a>(reindeers: &'a Vec<Reindeer>, race_time: u32) -> (&'a str, u32) {
-    (&reindeers[0].name, 5)
+fn find_winner<'a>(reindeers: &'a Vec<Reindeer>, race_time: u32) -> Option<Winner<'a>> {
+    let mut best: Option<Winner> = None;
+
+    for reindeer in reindeers {
+        let dist = reindeer_dist(reindeer, race_time);
+
+        match &best {
+            Some(w) => {
+                if w.dist < dist {
+                    best = new_winner(reindeer, dist);
+                }
+            }
+            None => best = new_winner(reindeer, dist),
+        }
+    }
+
+    best
+}
+
+fn new_winner<'a>(reindeer: &'a Reindeer, dist: u32) -> Option<Winner<'a>> {
+    Some(Winner {
+        name: &(reindeer.name),
+        dist,
+    })
+}
+
+fn reindeer_dist(reindeer: &Reindeer, time: u32) -> u32 {
+    reindeer.cycle_dist * time / reindeer.cycle_time
+        + reindeer.speed * cmp::min(time, reindeer.flight_time)
 }
