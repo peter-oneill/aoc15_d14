@@ -1,5 +1,5 @@
 use regex::Regex;
-use std::{fs, process};
+use std::{env, fs, process};
 
 #[derive(Debug)]
 struct Reindeer {
@@ -15,16 +15,28 @@ fn main() {
         process::exit(1);
     });
 
-    println!("{}", input_text);
-
     let reindeers = parse_input(input_text).unwrap_or_else(|err| {
         eprintln!("Couldn't parse contents of input.txt.  Error:\n{}", err);
         process::exit(2);
     });
 
-    for reindeer in reindeers {
-        println!("{:?}", reindeer);
-    }
+    let race_time = match env::args().next() {
+        Some(s) => match s.parse::<u32>() {
+            Ok(v) => v,
+            Err(_) => {
+                eprintln!("Couldn't parse rate time arg to u32: \"{}\"", s);
+                process::exit(4);
+            }
+        },
+        None => {
+            eprintln!("No race time provided.");
+            process::exit(3);
+        }
+    };
+
+    let (winner, distance): (&str, u32) = find_winner(&reindeers, race_time);
+
+    println!("The winner is {} with distance {}!", winner, distance);
 }
 
 fn parse_input(input: String) -> Result<Vec<Reindeer>, String> {
